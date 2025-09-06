@@ -19,7 +19,11 @@ This repository contains my Floating Point Multiplier project implemented in Ver
 - Verified design correctness using structured test benches in Cadence Virtuoso.
 - Automated synthesis with scripts to generate gate-level implementation in Cadence Genus.
 
-##  How to Explore
-1. Clone the repo:
+## 🔍 How to Explore
+
+Follow these steps to go through the project:
+
+1. **Clone the Repository**
    ```bash
    git clone https://github.com/Samarth26-02/Floating-Point-Multiplier.git
+   cd Floating-Point-Multiplier
