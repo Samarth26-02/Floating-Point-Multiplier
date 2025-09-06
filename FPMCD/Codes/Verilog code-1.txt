@@ -1,0 +1,74 @@
+VERILOG CODES 
+i. 
+Verilog code for Wallace tree multiplier and Kogge stone adder combination. 
+module FloatingPointMultiplier (  
+operand (32-bit single precision) 
+operand (32-bit single precision) 
+input [31:0] A,  
+input [31:0] B, 
+// First 
+// Second 
+output [31:0] result // 32-bit 
+floating point result 
+); 
+// Extract the sign, exponent, and mantissa from A and B 
+wire signA = A[31]; wire signB = B[31]; wire [7:0] 
+expA = A[30:23]; wire [7:0] expB = B[30:23]; wire 
+[22:0] mantA = A[22:0]; wire [22:0] mantB = B[22:0]; 
+// Calculate the sign of the result 
+wire resultSign = signA ^ signB; 
+// Add the exponents (including the bias) wire [8:0] expSum = expA + expB - 8'h7F; 
+// IEEE 754 bias for single precision is 127 
+// Normalize the mantissas (adding the implicit leading 1 for normalized numbers) 
+wire [24:0] mantA_norm = {1'b1, mantA}; wire [24:0] mantB_norm = {1'b1, 
+mantB}; 
+// Mantissa multiplication (24-bit precision) 
+wire [49:0] mantResult; 
+assign mantResult = 
+mantA_norm * mantB_norm; 
+// Kogge-Stone Adder to add partial sums of mantissa multiplication 
+wire [49:0] sum; 
+KoggeStoneAdder KSA ( 
+.A(mantResult[49:25]),
+.B(mantResult[24:0]), 
+.sum(sum) 
+); 
+// Normalize the product mantissa (if necessary) 
+[23:0] resultMantissa; 
+wire [7:0] resultExponent;  
+wire 
+wire 
+shift = sum[49]; // Check for any left shifts needed 
+assign resultMantissa = shift ? sum[48:25] : sum[47:24]; 
+assign resultExponent = expSum + shift; 
+// Combine the result sign, exponent, and mantissa 
+= {resultSign, resultExponent, resultMantissa[22:0]}; 
+endmodule 
+module KoggeStoneAdder ( 
+input [24:0] A, // First input (partial sum) 
+input [24:0] B, // Second input (partial sum) 
+output [49:0] sum // Final sum 
+); 
+wire [49:0] carry; // Carry bits 
+G; // Propagate and Generate bits  
+C; 
+// Carry propagate 
+// Propagate and generate terms 
+wire [49:0] P, 
+wire [49:0] 
+assign P = A ^ 
+B; // Propagate: XOR of A and B  assign G = A 
+& B; // Generate: AND of A and B 
+assign result 
+// First stage of Kogge-Stone Adder assign carry[0] = 0; // 
+No carry-in for the least significant bit assign C[0] = 0; 
+// 
+Initial carry is 0
+// Carry and sum calculations 
+genvar i; 
+generate 
+for (i = 1; i < 50; i = i + 1) begin : carry_propagate 
+assign carry[i] = G[i-1] | (P[i-1] & carry[i-1]); 
+assign sum[i] = P[i] ^ carry[i]; 
+end endgenerate 
+endmodule

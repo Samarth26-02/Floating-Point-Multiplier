@@ -1,0 +1,51 @@
+ii. 
+Verilog code for Wallace tree multiplier and Carry bypass adder combination. 
+module floating_point_multiplier( 
+// Input A (32-bit single precision) 
+// Input B (32-bit single precision) 
+product // 32-bit product output 
+); 
+input [31:0] A, 
+input [31:0] B, 
+output [31:0] 
+// Extract the sign, exponent, and mantissa for both inputs 
+wire sign_A, sign_B, sign_product; 
+wire [7:0] exp_A, 
+exp_B, exp_product; wire [23:0] mant_A, mant_B, 
+mant_product; 
+// Sign bit (1 bit) 
+assign sign_A = A[31]; 
+assign sign_B = B[31]; 
+// Exponent (8 bits) and subtract the bias (127 for single precision) 
+assign exp_A = A[30:23]; assign exp_B = B[30:23]; 
+// Mantissa (23 bits for normalized mantissa, with implicit leading 1) 
+assign mant_A = {1'b1, A[22:0]}; 
+assign mant_B = {1'b1, B[22:0]}; 
+// Multiply mantissas (24 bits * 24 bits = 48 bits result) 
+wire [47:0] mantissa_product; 
+assign 
+mantissa_product = mant_A * mant_B;
+// Add exponents (with bias of 127) wire [8:0] 
+raw_exp_product = exp_A + exp_B - 8'd127; assign 
+exp_product = raw_exp_product[7:0]; 
+// Determine the sign of the product (XOR of the sign bits) assign 
+sign_product = sign_A ^ sign_B; 
+// Check if the mantissa product requires normalization  wire normalize_flag; assign 
+normalize_flag = mantissa_product[47]; // Check the MSB of mantissa for 
+normalization 
+// Mantissa normalization logic 
+wire [47:0] mantissa_result; 
+wire 
+[7:0] adjusted_exp_product; 
+// If normalization is needed, shift the mantissa and adjust the exponent 
+assign mantissa_result 
+= 
+mantissa_product[46:24] 
+normalize_flag 
+? 
+: mantissa_product[45:23]; 
+assign adjusted_exp_product = normalize_flag ? exp_product + 1 : exp_product; 
+// Final product (sign + exponent + mantissa) assign product = {sign_product, 
+adjusted_exp_product, mantissa_result[22:0]}; // 1 bit for sign, 8 bits for exponent, 23 
+bits for mantissa 
+endmodule

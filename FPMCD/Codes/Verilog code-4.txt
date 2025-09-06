@@ -1,0 +1,80 @@
+iv. 
+Verilog code for Systolic multiplier and Kogge stone adder combination. 
+module floating_point_multiplier( 
+a, // First input (floating point) 
+input [31:0] 
+input [31:0] b, 
+// Second input (floating point) 
+product // Output (floating point) 
+); 
+output [31:0] 
+// Extract sign, exponent, and mantissa 
+sign_a = a[31]; // Sign bit of a 
+wire 
+wire sign_b = 
+b[31]; // Sign bit of b 
+wire [7:0] exponent_a = 
+a[30:23]; // Exponent of a 
+wire [7:0] exponent_b = 
+b[30:23]; // Exponent of b  
+wire [22:0] mantissa_a 
+= a[22:0]; // Mantissa of a wire [22:0] mantissa_b 
+= b[22:0]; // Mantissa of b 
+// Compute sign of the product 
+Product sign is XOR of input signs 
+// Compute exponent 
+wire sign_product = sign_a ^ sign_b; // 
+wire [8:0] exponent_sum = {1'b0, exponent_a} + {1'b0, 
+exponent_b} - 127; // Add exponents and subtract bias 
+wire [7:0] exponent_product = exponent_sum[7:0]; // 8-bit exponent for product
+// Normalize mantissas by adding implicit leading 1 
+wire [23:0] 
+normalized_mantissa_a = {1'b1, mantissa_a}; // 24 bits for mantissa of a 
+normalized_mantissa_b = {1'b1, mantissa_b}; // 24 bits for mantissa of b 
+// Systolic Multiplier (Direct Binary Multiplication) 
+wire [23:0] 
+wire [47:0] mantissa_product 
+= normalized_mantissa_a * normalized_mantissa_b; // 24 x 24 = 48 bits 
+// Kogge-Stone Adder for normalization wire [23:0] 
+final_mantissa; // Final normalized mantissa 
+kogge_stone_adder KSA ( 
+.a(mantissa_product[46:23]), // Top half of the product (23 bits) 
+.b(mantissa_product[22:0]), 
+// 
+.sum(final_mantissa) 
+); 
+// Output sum 
+Bottom half of the product (23 bits) 
+// Adjust for normalization (if mantissa overflowed) 
+wire [7:0] adjusted_exponent 
+= exponent_product + (final_mantissa[23] ? 1 : 0); // Increment exponent if needed 
+// Assemble final product 
+assign product = {sign_product, adjusted_exponent, final_mantissa[22:0]}; // 
+Combine sign, exponent, and mantissa 
+endmodule 
+module kogge_stone_adder( 
+input [23:0] a, // First input to the adder 
+input [23:0] b, // Second input to the adder 
+output [23:0] sum // Sum output 
+); 
+// Kogge-Stone adder logic for 24-bit addition 
+wire [23:0] G; // Generate signals  wire [23:0] 
+P; // Propagate signals wire [24:0] C; // Carry 
+signals  wire [24:0] S; // Sum output
+// Generate and propagate signals 
+assign G = a & b; // Generate 
+assign 
+P = a ^ b; // Propagate 
+// Carry lookahead logic 
+assign C[0] = 1'b0; // Carry in for the first stage is zero 
+// Carry calculation using Kogge-Stone logic 
+genvar i; 
+generate 
+for (i = 0; i < 24; i = i + 1) begin : carry_generation 
+assign C[i + 1] = G[i] | (P[i] & C[i]); // Carry out is generated 
+end endgenerate 
+// Sum calculation 
+assign S = P ^ C[24:1]; // Final sum is P XOR with carry 
+// Output the lower 24 bits of the sum 
+assign sum = S[23:0]; 
+endmodule

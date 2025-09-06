@@ -1,0 +1,93 @@
+iii. 
+Verilog code for Systolic multiplier and Carry bypass adder combination. 
+module fp_multiplier( input [31:0] a, // 32-bit IEEE 754 
+floating-point input a input [31:0] b, // 32-bit IEEE 754 
+floating-point input b output [31:0] result // 32-bit IEEE 
+754 floating-point result 
+);
+// Step 1: Extract sign, exponent, and mantissa components of both inputs wire 
+sign_a = a[31];  wire sign_b = b[31];  wire [7:0] exponent_a = a[30:23];  wire [7:0] 
+exponent_b = b[30:23]; wire [23:0] mantissa_a = {1'b1, a[22:0]}; // Append implied 
+leading 1 for IEEE 754  wire [23:0] mantissa_b = {1'b1, b[22:0]}; 
+// Step 2: Multiply the mantissas using a systolic array multiplier 
+wire [47:0] mantissa_mult; 
+systolic_multiplier 
+systolic_mult_inst ( 
+.a(mantissa_a), 
+.b(mantissa_b), 
+.product(mantissa_mult) 
+); 
+// Step 3: Add exponents using the Kogge-Stone adder and adjust for bias (127 in 
+IEEE 754) wire [8:0] 
+exponent_sum_raw; 
+kogge_stone_adder adder_inst ( 
+.a(exponent_a), 
+.b(exponent_b), 
+.cin(8'd127), // Adjust for bias 
+.sum(exponent_sum_raw) 
+); 
+// Step 4: Assemble final result, apply normalization, and handle edge cases 
+wire 
+[22:0] normalized_mantissa = mantissa_mult[46:24]; // Take 23 most significant bits 
+wire [7:0] final_exponent = exponent_sum_raw[7:0] + mantissa_mult[47]; // Adjust 
+exponent if overflow in mantissa 
+// Handle signs and assemble IEEE 754 format result assign result = 
+{sign_a ^ sign_b, final_exponent, normalized_mantissa}; endmodule 
+// Systolic multiplier for 24-bit mantissa multiplication module 
+systolic_multiplier ( 
+input [23:0] a, // 24-bit mantissa a 
+input
+[23:0] b, // 24-bit mantissa b 
+output reg[47:0] product // 48-bit 
+product of mantissa multiplication 
+); 
+// Simple systolic multiplier logic for 24x24 multiplication 
+reg [47:0] partial_product [23:0]; 
+integer i; 
+always @(*)begin 
+// Initialize partial products 
+24; i = i + 1) begin 
+for (i = 0; i < 
+partial_product[i] = 
+a[i] ? (b << i) : 48'd0; 
+end 
+// Sum the partial products 
+= 0;  
+product 
+for (i = 0; i < 24; i = i + 1) begin 
+product = product + partial_product[i]; 
+end end 
+endmodule 
+// Carry bypass Adder for 8-bit exponent addition with carry input 
+module carry_bypass_adder ( 
+input [7:0] a, // 8-bit input a 
+input [7:0] b, // 8- 
+bit input b 
+input [7:0] cin, // Bias of 127 in IEEE 
+754 format  output [8:0] sum // 9-bit sum to 
+handle overflow 
+); 
+wire [7:0] p, g;  
+wire [7:0] c; 
+// Propagate and generate 
+// Carry 
+// Stage 0: Initial propagate and generate 
+assign p = a ^ b;   
+// Propagate  assign g 
+= a & b;   
+// Generate 
+// Carry bypass stages for carry computation 
+assign c[0] = g[0] | (p[0] & cin[0]); 
+assign 
+c[1] = g[1] | (p[1] & c[0]); assign c[2] =
+g[2] | (p[2] & c[1]); 
+assign c[3] = g[3] | 
+(p[3] & c[2]); assign c[4] = g[4] | (p[4] & 
+c[3]); 
+assign c[5] = g[5] | (p[5] & c[4]); 
+assign c[6] = g[6] | (p[6] & c[5]); 
+assign 
+c[7] = g[7] | (p[7] & c[6]); 
+// Final Sum computation assign 
+sum = {1'b0, p} ^ {c, cin[7]}; 
+endmodule
