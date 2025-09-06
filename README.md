@@ -12,7 +12,7 @@ This repository contains my Floating Point Multiplier project implemented in Ver
 - **Hardware Description Language:** Verilog
 - **Simulation & Verification:** Cadence Virtuoso (for functional validation)
 - **Synthesis Tool:** Cadence Genus (using TCL & SDC scripts)
-- **Design Features:** Carry bypass adder, Kogge-Stone adder, Wallace Tree multiplier — optimized for area, power, and performance.
+- **Design Features:** Carry bypass adder, Kogge-Stone adder, Wallace Tree multiplier and Systollic multiplier — optimized for area, power, and performance.
 
 ##  Project Highlights
 - Designed a floating-point multiplier combining high-performance arithmetic modules.
